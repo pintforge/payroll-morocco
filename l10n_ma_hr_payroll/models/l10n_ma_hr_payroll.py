@@ -11,7 +11,7 @@ class HrPayrollAdvice(models.Model):
     Bank Advice
     '''
     _name = 'hr.payroll.advice'
-    _description = "Indian HR Payroll Advice"
+    _description = "Moroccan HR Payroll Advice"
 
     def _get_default_date(self):
         return fields.Date.from_string(fields.Date.today())
@@ -200,3 +200,20 @@ class HRemployee(models.Model):
     bank_company_id = fields.Many2one('res.bank', string='Banque de Virement', readonly=False,
         help='Sélectionner la banque par laquelle le salaire sera versé')
     charge_sociale = fields.Integer(string="Personnes à Charge", required=False, help='Nombre de Personnes à Charge Sociale pour déduction IR')
+
+class ResCompany(models.Model):
+    _inherit = 'res.company'
+
+    affil_cnss = fields.Char(string="N° Affiliation CNSS")
+    affil_cimr = fields.Char(string="N° Affiliation CIMR")
+    taux_cimr_salar = fields.Char(string="Taux CIMR Salariale")
+    taux_cimr_part = fields.Char(string="Taux CIMR Patronale")
+    ice = fields.Char(string="I.C.E")
+    patente = fields.Char(string="Patente N°")
+    tp = fields.Char(string="Taxe Professionnelle")
+    code_commune = fields.Char(string="Code Commune pour IR")
+    bank = fields.One2many('res.partner.bank', 'bank_id')
+    count_total = fields.Char(string="Nombre d'employés",)
+    count_permanent = fields.Char(string="Nombre d'employés Permanents",)
+    count_occas = fields.Char(string="Nombre d'employés Occasionnelles",)
+    count_stag = fields.Char(string="Nombre de stagiaires",)
