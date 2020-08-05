@@ -193,9 +193,11 @@
           <field name="inherit_id" ref="hr.view_employee_form"/>
           <field name="arch" type="xml">
             <data>
+              <xpath expr="//field[@name='country_id']" position="after">
+                  <field name="cin"/>
+              </xpath>
               <xpath expr="//group[@name='active_group']" position="after">
                 <group>
-                  <field name="cin"/>
                   <field name="matricule_cnss"/>
                   <field name="matricule_cimr" class="oe_inline"/><field name="cat_cimr" class="oe_inline"/><field name="date_cimr" class="oe_inline"/>
                   <field name="matricule_mut" />
