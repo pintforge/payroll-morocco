@@ -6,25 +6,6 @@ from odoo.addons import decimal_precision as dp
 from odoo.exceptions import UserError
 
 
-class HrContract(models.Model):
-    """
-    Employee contract allows to add different values in fields.
-    Fields are used in salary rule computation.
-    """
-    _inherit = 'hr.contract'
-
-    tds = fields.Float(string='TDS', digits=dp.get_precision('Payroll'),
-        help='Amount for Tax Deduction at Source')
-    driver_salay = fields.Boolean(string='Driver Salary', help='Check this box if you provide allowance for driver')
-    medical_insurance = fields.Float(string='Medical Insurance', digits=dp.get_precision('Payroll'),
-        help='Deduction towards company provided medical insurance')
-    voluntary_provident_fund = fields.Float(string='Voluntary Provident Fund (%)', digits=dp.get_precision('Payroll'),
-        help='VPF is a safe option wherein you can contribute more than the PF ceiling of 12% that has been mandated by the government and VPF computed as percentage(%)')
-    house_rent_allowance_metro_nonmetro = fields.Float(string='House Rent Allowance (%)', digits=dp.get_precision('Payroll'),
-        help='HRA is an allowance given by the employer to the employee for taking care of his rental or accommodation expenses for metro city it is 50% and for non metro 40%. \nHRA computed as percentage(%)')
-    supplementary_allowance = fields.Float(string='Supplementary Allowance', digits=dp.get_precision('Payroll'))
-
-
 class HrPayrollAdvice(models.Model):
     '''
     Bank Advice
@@ -187,9 +168,19 @@ class HrPayslip(models.Model):
 
     advice_id = fields.Many2one('hr.payroll.advice', string='Bank Advice', copy=False)
 
+class HrContract(models.Model):
+    """
+    Employee contract allows to add different values in fields.
+    Fields are used in salary rule computation.
+    """
+    _inherit = 'hr.contract'
 
-class ResCompany(models.Model):
-    _inherit = 'res.company'
-
-    dearness_allowance = fields.Boolean(string='Dearness Allowance', default=True,
-        help='Check this box if your company provide Dearness Allowance to employee')
+    indemnite_transport = fields.Float(string='Indémnité de Transport', digits=dp.get_precision('payroll'), help='Indémnité de Transport')
+    prime_panier = fields.Float(string='Prime de Panier', digits=dp.get_precision('payroll'),
+    help='Prime de Panier')
+    prime_fonction = fields.Float(string='Prime de Fonction', digits=dp.get_precision('payroll'),
+    help='Prime de Fonction')
+    indemnite_representation = fields.Float(string='Indémnité de Représentation', digits=dp.get_precision('payroll'),
+    help='Indémnité de Représentation')
+    indemnite_voiture = fields.Float(string='Indémnité de Voiture', digits=dp.get_precision('payroll'),
+    help='Indémnité de Voiture')
