@@ -372,7 +372,7 @@ result = (BC*5/100) if (coef &gt;= 25) and (coef &lt;= 60) else (BC*10/100) if (
        <field name="sequence">110</field>
        <field name="category_id" ref="NOCAT"/>
        <field name="amount_select">code</field>
-       <field name="amount_python_compute">result = GROSS - categories.INDMNT</field>
+       <field name="amount_python_compute">result = GROSS - categories.PRINNT</field>
        <field name="appears_on_payslip" eval="False"/>
      </record>
 
