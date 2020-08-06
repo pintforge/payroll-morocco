@@ -25,6 +25,7 @@ Moroccan Payroll Salary Rules.
          'data/l10n_ma_hr_payroll_data.xml',
          'security/ir.model.access.csv',
          'views/l10n_ma_hr_payroll_report.xml',
+         'views/report_payroll_payslip_template.xml',
          'data/l10n_ma_hr_payroll_sequence_data.xml',
          'views/report_payslip_details_template.xml',
          'report/payment_advice_report_view.xml',
