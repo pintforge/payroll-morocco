@@ -30,7 +30,6 @@ class PaymentAdviceReport(models.Model):
     company_id = fields.Many2one('res.company', string='Company', readonly=True)
     cheque_nos = fields.Char(string='Cheque Numbers', readonly=True)
     #neft = fields.Boolean(string='NEFT Transaction', readonly=True)
-    ifsc_code = fields.Char(string='IFSC Code', readonly=True)
     employee_bank_no = fields.Char(string='Employee Bank Account', required=True)
 
     @api.model_cr
@@ -49,7 +48,6 @@ class PaymentAdviceReport(models.Model):
                     p.bank_id,
                     p.chaque_nos as cheque_nos,
                     l.employee_id,
-                    l.ifsc_code,
                     l.name as employee_bank_no,
                     to_char(p.date, 'YYYY') as year,
                     to_char(p.date, 'MM') as month,
@@ -62,6 +60,6 @@ class PaymentAdviceReport(models.Model):
                     l.employee_id IS NOT NULL
                 group by
                     p.number,p.name,p.date,p.state,p.company_id,p.bank_id,p.chaque_nos,
-                    l.employee_id,l.advice_id,l.bysal,l.ifsc_code, l.name
+                    l.employee_id,l.advice_id,l.bysal,l.name
             )
         """)
