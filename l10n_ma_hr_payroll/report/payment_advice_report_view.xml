@@ -18,7 +18,6 @@
                 <field name="month" invisible="1"/>
                 <field name="company_id" invisible="1"/>
                 <field name="cheque_nos" invisible="1"/>
-                <field name="ifsc_code" invisible="1"/>
             </tree>
         </field>
     </record>
@@ -42,7 +41,6 @@
                 </group>
                 <newline/>
                  <group expand="0" string="Extended Filters...">
-                    <field name="ifsc_code"/>
                     <field name="bank_id" widget="selection"/>
                     <field name="employee_bank_no"/>
                     <separator orientation="vertical"/>
