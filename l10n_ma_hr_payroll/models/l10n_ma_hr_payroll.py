@@ -259,3 +259,11 @@ class FichePaieParser(models.AbstractModel):
             'get_total_by_rule_category': self.get_total_by_rule_category,
             'get_employer_line': self.get_employer_line,
         }
+
+class ResBank(models.Model):
+    _inherit = 'res.bank'
+
+    bank_virement = fields.Many2one('res.partner.bank', string='Banque de paiement')
+    bank_virement_id = fields.Many2one('res.bank', string='Banque de paiement', related='bank_virement.bank_id')
+    company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True,
+        states={'draft': [('readonly', False)]}, default=lambda self: self.env.user.company_id)
