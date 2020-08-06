@@ -18,7 +18,6 @@
                 <field name="month" invisible="1"/>
                 <field name="company_id" invisible="1"/>
                 <field name="cheque_nos" invisible="1"/>
-                <field name="neft" invisible="1"/>
                 <field name="ifsc_code" invisible="1"/>
             </tree>
         </field>
@@ -33,8 +32,6 @@
                  <group>
                     <filter string="Draft" name="draft" domain="[('state','=','draft')]" help="Payment Advices which are in draft state"/>
                     <filter string="Confirm" name="confirm" domain="[('state','=','confirm')]" help="Payment Advices which are in confirm state"/>
-                    <separator orientation="vertical"/>
-                    <filter string="NEFT" name="neft" domain="[('neft','=',True)]" help="Advices which are paid using NEFT transfer"/>
                     <separator orientation="vertical"/>
                     <field name="date"/>
                     <separator orientation="vertical"/>
