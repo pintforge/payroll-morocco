@@ -11,7 +11,7 @@
         <report
                 id="payslip_report"
                 model="hr.payslip"
-                string="Bultin de paie"
+                string="Payslip Report"
                 report_type="qweb-pdf"
                 name="l10n_ma_hr_payroll.report_payslip"
                 file="l10n_ma_hr_payroll.report_payslip"/>
