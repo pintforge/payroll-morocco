@@ -30,7 +30,7 @@ class HrPayrollAdvice(models.Model):
     line_ids = fields.One2many('hr.payroll.advice.line', 'advice_id', string='Employee Salary',
         states={'draft': [('readonly', False)]}, readonly=True, copy=True)
     chaque_nos = fields.Char(string='Cheque Numbers')
-    neft = fields.Boolean(string='NEFT Transaction', help='Check this box if your company use online transfer for salary')
+    #neft = fields.Boolean(string='NEFT Transaction', help='Check this box if your company use online transfer for salary')
     company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True,
         states={'draft': [('readonly', False)]}, default=lambda self: self.env.user.company_id)
     bank_id = fields.Many2one('res.bank', string='Bank', readonly=True, states={'draft': [('readonly', False)]},
@@ -56,7 +56,7 @@ class HrPayrollAdvice(models.Model):
                     self.env['hr.payroll.advice.line'].create({
                         'advice_id': advice.id,
                         'name': slip.employee_id.bank_account_id.acc_number,
-                        'ifsc_code': slip.employee_id.bank_account_id.bank_bic or '',
+                        #'ifsc_code': slip.employee_id.bank_account_id.bank_bic or '',
                         'employee_id': slip.employee_id.id,
                         'bysal': payslip_line.total
                     })
@@ -95,49 +95,6 @@ class HrPayrollAdvice(models.Model):
         self.bank_id = self.company_id.partner_id.bank_ids and self.company_id.partner_id.bank_ids[0].bank_id.id or False
 
 
-class HrPayslipRun(models.Model):
-    _inherit = 'hr.payslip.run'
-    _description = 'Payslip Batches'
-
-    available_advice = fields.Boolean(string='Made Payment Advice?',
-                                       help='If this box is checked which means that Payment Advice exists for current batch',
-                                       readonly=False, copy=False)
-
-    @api.multi
-    def draft_payslip_run(self):
-        super(HrPayslipRun, self).draft_payslip_run()
-        self.write({'available_advice': False})
-
-    @api.multi
-    def create_advice(self):
-        for run in self:
-            if run.available_advice:
-                raise UserError(_("Payment advice already exists for %s, 'Set to Draft' to create a new advice.") % (run.name,))
-            company = self.env.user.company_id
-            advice = self.env['hr.payroll.advice'].create({
-                        'batch_id': run.id,
-                        'company_id': company.id,
-                        'name': run.name,
-                        'date': run.date_end,
-                        'bank_id': company.partner_id.bank_ids and company.partner_id.bank_ids[0].bank_id.id or False
-                    })
-            for slip in run.slip_ids:
-                # TODO is it necessary to interleave the calls ?
-                slip.action_payslip_done()
-                if not slip.employee_id.bank_account_id or not slip.employee_id.bank_account_id.acc_number:
-                    raise UserError(_('Please define bank account for the %s employee') % (slip.employee_id.name))
-                payslip_line = self.env['hr.payslip.line'].search([('slip_id', '=', slip.id), ('code', '=', 'NET')], limit=1)
-                if payslip_line:
-                    self.env['hr.payroll.advice.line'].create({
-                        'advice_id': advice.id,
-                        'name': slip.employee_id.bank_account_id.acc_number,
-                        'ifsc_code': slip.employee_id.bank_account_id.bank_bic or '',
-                        'employee_id': slip.employee_id.id,
-                        'bysal': payslip_line.total
-                    })
-        self.write({'available_advice': True})
-
-
 class HrPayrollAdviceLine(models.Model):
     '''
     Bank Advice Lines
@@ -147,17 +104,17 @@ class HrPayrollAdviceLine(models.Model):
 
     advice_id = fields.Many2one('hr.payroll.advice', string='Bank Advice')
     name = fields.Char('Bank Account No.', required=True)
-    ifsc_code = fields.Char(string='IFSC Code')
+    #ifsc_code = fields.Char(string='IFSC Code')
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True)
     bysal = fields.Float(string='By Salary', digits=dp.get_precision('Payroll'))
     debit_credit = fields.Char(string='C/D', default='C')
     company_id = fields.Many2one('res.company', related='advice_id.company_id', string='Company', store=True, readonly=False)
-    ifsc = fields.Boolean(related='advice_id.neft', string='IFSC', readonly=False)
+    #ifsc = fields.Boolean(related='advice_id.neft', string='IFSC', readonly=False)
 
     @api.onchange('employee_id')
     def onchange_employee_id(self):
         self.name = self.employee_id.bank_account_id.acc_number
-        self.ifsc_code = self.employee_id.bank_account_id.bank_bic or ''
+        #self.ifsc_code = self.employee_id.bank_account_id.bank_bic or ''
 
 
 class HrPayslip(models.Model):
