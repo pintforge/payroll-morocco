@@ -12,30 +12,34 @@ class HrPayrollAdvice(models.Model):
     Bank Advice
     '''
     _name = 'hr.payroll.advice'
-    _description = "Moroccan HR Payroll Advice"
+    _description = "Moroccan HR Ordre Virement"
 
     def _get_default_date(self):
         return fields.Date.from_string(fields.Date.today())
 
     name = fields.Char(readonly=True, required=True, states={'draft': [('readonly', False)]})
-    note = fields.Text(string='Description', default='Please make the payroll transfer from above account number to the below mentioned account numbers towards employee salaries:')
-    date = fields.Date(readonly=True, required=True, states={'draft': [('readonly', False)]}, default=_get_default_date,
-        help='Advice Date is used to search Payslips')
+    note = fields.Text(string='Description', default='Effectuez le transfert de paie du numéro de compte ci-dessus aux numéros de compte mentionnés ci-dessous en vue du salaire des employés:')
+    date = fields.Date(string='Date', readonly=True, required=True, states={'draft': [('readonly', False)]}, default=_get_default_date,
+        help='La date de l\'odre de virement est utilisé pour chercher le bulletin de paie')
     state = fields.Selection([
-        ('draft', 'Draft'),
-        ('confirm', 'Confirmed'),
-        ('cancel', 'Cancelled'),
+        ('draft', 'Brouillon'),
+        ('confirm', 'Confirmer'),
+        ('cancel', 'Annuler'),
     ], string='Status', default='draft', index=True, readonly=True)
-    number = fields.Char(string='Reference', readonly=True)
-    line_ids = fields.One2many('hr.payroll.advice.line', 'advice_id', string='Employee Salary',
+    number = fields.Char(string='Référence', readonly=True)
+    line_ids = fields.One2many('hr.payroll.advice.line', 'advice_id', string='Salaire Employé',
         states={'draft': [('readonly', False)]}, readonly=True, copy=True)
-    chaque_nos = fields.Char(string='Cheque Numbers')
-    #neft = fields.Boolean(string='NEFT Transaction', help='Check this box if your company use online transfer for salary')
-    company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True,
+    chaque_nos = fields.Char(string='N° de Chèque')
+    #neft = fields.Boolean(string='NEFT Transaction', help='Cocher cette case si votre entreprise utilise le virement online pour les salaires')
+    company_id = fields.Many2one('res.company', string='Entreprise', required=True, readonly=True,
         states={'draft': [('readonly', False)]}, default=lambda self: self.env.user.company_id)
-    bank_id = fields.Many2one('res.bank', string='Bank', readonly=True, states={'draft': [('readonly', False)]},
+    bank_account_id = fields.Many2one('res.partner.bank', string='Bank', readonly=True, states={'draft': [('readonly', False)]},
         help='Select the Bank from which the salary is going to be paid')
+    bank_id = fields.Many2one('res.bank', related='bank_account_id.bank_id')
+    #bank_virement = fields.Many2one('res.partner.bank', string='Banque de réception')
+    bank_virement_id = fields.Many2one('res.bank', string='Banque Réception')
     batch_id = fields.Many2one('hr.payslip.run', string='Batch', readonly=True)
+
 
     @api.multi
     def compute_advice(self):
@@ -47,16 +51,20 @@ class HrPayrollAdvice(models.Model):
             old_lines = self.env['hr.payroll.advice.line'].search([('advice_id', '=', advice.id)])
             if old_lines:
                 old_lines.unlink()
-            payslips = self.env['hr.payslip'].search([('date_from', '<=', advice.date), ('date_to', '>=', advice.date), ('state', '=', 'done')])
+            payslips = self.env['hr.payslip'].search([('date_from', '<=', advice.date), ('date_to', '>=', advice.date), ('state', '=', 'done'), ('company_bank', '=', advice.bank_id.name), ('employee_bank', '=', advice.bank_virement_id.name)])
+            #payslips = self.env['hr.employee'].search([('bank_company_id', '=', advice.bank_id)])
             for slip in payslips:
                 if not slip.employee_id.bank_account_id and not slip.employee_id.bank_account_id.acc_number:
-                    raise UserError(_('Please define bank account for the %s employee') % (slip.employee_id.name,))
+                    raise UserError(_('Merci de définir une banque pour %s ') % (slip.employee_id.name,))
+                #if not slip.employee_id.bank_company_id:
+                    #raise UserError(_('Merci de définir une banque de Virement pour %s ') % (slip.employee_id.name,))
+
                 payslip_line = self.env['hr.payslip.line'].search([('slip_id', '=', slip.id), ('code', '=', 'NET')], limit=1)
                 if payslip_line:
                     self.env['hr.payroll.advice.line'].create({
                         'advice_id': advice.id,
                         'name': slip.employee_id.bank_account_id.acc_number,
-                        #'ifsc_code': slip.employee_id.bank_account_id.bank_bic or '',
+                        'agence': slip.employee_id.bank_agence,
                         'employee_id': slip.employee_id.id,
                         'bysal': payslip_line.total
                     })
@@ -69,12 +77,12 @@ class HrPayrollAdvice(models.Model):
         """
         for advice in self:
             if not advice.line_ids:
-                raise UserError(_('You can not confirm Payment advice without advice lines.'))
-            date = fields.Date.from_string(fields.Date.today())
+                raise UserError(_('Vous ne pouvez pas confirmer l\'ordre de virement s\'il n\'y a pas de lignes.'))
+            date = advice.date
             advice_year = date.strftime('%m') + '-' + date.strftime('%Y')
             number = self.env['ir.sequence'].next_by_code('payment.advice')
             advice.write({
-                'number': 'PAY' + '/' + advice_year + '/' + number,
+                'number': 'PAIE' + '/' + advice_year + '/' + number,
                 'state': 'confirm',
             })
 
@@ -102,20 +110,21 @@ class HrPayrollAdviceLine(models.Model):
     _name = 'hr.payroll.advice.line'
     _description = 'Bank Advice Lines'
 
-    advice_id = fields.Many2one('hr.payroll.advice', string='Bank Advice')
-    name = fields.Char('Bank Account No.', required=True)
-    #ifsc_code = fields.Char(string='IFSC Code')
-    employee_id = fields.Many2one('hr.employee', string='Employee', required=True)
-    bysal = fields.Float(string='By Salary', digits=dp.get_precision('Payroll'))
+    advice_id = fields.Many2one('hr.payroll.advice', string='Ordre de virement')
+    name = fields.Char('No de Compte Bancaire', required=True)
+    agence = fields.Char('Nom de la banque', required=True)
+    #ifsc_code = fields.Char('IFSC Code')
+    employee_id = fields.Many2one('hr.employee', string='Employé', required=True)
+    bysal = fields.Float(string='Par Salarié', digits=dp.get_precision('Payroll'))
     debit_credit = fields.Char(string='C/D', default='C')
-    company_id = fields.Many2one('res.company', related='advice_id.company_id', string='Company', store=True, readonly=False)
+    company_id = fields.Many2one('res.company', related='advice_id.company_id', string='Entreprise', store=True, readonly=False)
     #ifsc = fields.Boolean(related='advice_id.neft', string='IFSC', readonly=False)
 
     @api.onchange('employee_id')
     def onchange_employee_id(self):
         self.name = self.employee_id.bank_account_id.acc_number
-        #self.ifsc_code = self.employee_id.bank_account_id.bank_bic or ''
-
+        #self.agence = self.employee_id.bank_account_id.bank_id.name
+        #self.ifsc_code = self.employee_id.bank_account_id.bank_id.bic or ''
 
 class HrPayslip(models.Model):
     '''
